@@ -198,7 +198,7 @@ function default_settings() {
   VMID=$NEXTID
   HN=openwrt
   CORE_COUNT="1"
-  RAM_SIZE="256"
+  RAM_SIZE="512"
   STORE_SIZE="512M"
   BRG="vmbr0"
   VLAN=""
@@ -280,7 +280,7 @@ function advanced_settings() {
       STORE_SIZE="512M"
     fi
     echo -e "${DGN}Allocated Hard Drive: ${BGN}$STORE_SIZE${CL}"
-    $STORE_SIZE=$STORE_SIZE+"M"
+    STORE_SIZE=$STORE_SIZE+"M"
   else
     exit-script
   fi
