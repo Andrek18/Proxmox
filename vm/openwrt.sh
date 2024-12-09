@@ -280,7 +280,7 @@ function advanced_settings() {
       STORE_SIZE="512M"
     fi
     echo -e "${DGN}Allocated Hard Drive: ${BGN}$STORE_SIZE${CL}"
-    STORE_SIZE=$STORE_SIZE+"M"
+    STORE_SIZE+="M"
   else
     exit-script
   fi
