@@ -199,12 +199,13 @@ function default_settings() {
   HN=openwrt
   CORE_COUNT="1"
   RAM_SIZE="256"
+  STORE_SIZE="512M"
   BRG="vmbr0"
   VLAN=""
   MAC=$GEN_MAC
   LAN_MAC=$GEN_MAC_LAN
   LAN_BRG="vmbr0"
-  LAN_IP_ADDR="192.168.1.1"
+  LAN_IP_ADDR="192.168.8.1"
   LAN_NETMASK="255.255.255.0"
   LAN_VLAN=",tag=999"
   MTU=""
@@ -213,6 +214,7 @@ function default_settings() {
   echo -e "${DGN}Using Hostname: ${BGN}${HN}${CL}"
   echo -e "${DGN}Allocated Cores: ${BGN}${CORE_COUNT}${CL}"
   echo -e "${DGN}Allocated RAM: ${BGN}${RAM_SIZE}${CL}"
+  echo -e "${DGN}Allocated Hard Drive: ${BGN}${STORE_SIZE}${CL}"
   echo -e "${DGN}Using WAN Bridge: ${BGN}${BRG}${CL}"
   echo -e "${DGN}Using WAN VLAN: ${BGN}Default${CL}"
   echo -e "${DGN}Using WAN MAC Address: ${BGN}${MAC}${CL}"
@@ -269,6 +271,16 @@ function advanced_settings() {
       RAM_SIZE="256"
     fi
     echo -e "${DGN}Allocated RAM: ${BGN}$RAM_SIZE${CL}"
+  else
+    exit-script
+  fi
+
+  if STORE_SIZE=$(whiptail --backtitle "Proxmox VE Helper Scripts" --inputbox "Allocate Hard Drive in MiB" 8 58 512 --title "hard Drive" --cancel-button Exit-Script 3>&1 1>&2 2>&3); then
+    if [ -z $STORE_SIZE ]; then
+      STORE_SIZE="512M"
+    fi
+    echo -e "${DGN}Allocated Hard Drive: ${BGN}$STORE_SIZE${CL}"
+    $STORE_SIZE=$STORE_SIZE+"M"
   else
     exit-script
   fi
@@ -445,7 +457,7 @@ gunzip -f $FILE >/dev/null 2>/dev/null || true
 NEWFILE="${FILE%.*}"
 FILE="$NEWFILE"
 mv $FILE ${FILE%.*}
-qemu-img resize -f raw ${FILE%.*} 512M >/dev/null 2>/dev/null
+qemu-img resize -f raw ${FILE%.*} $RAM_SIZE >/dev/null 2>/dev/null
 msg_ok "Extracted & Resized OpenWrt Disk Image ${CL}${BL}$FILE${CL}"
 STORAGE_TYPE=$(pvesm status -storage $STORAGE | awk 'NR>1 {print $2}')
 case $STORAGE_TYPE in
@@ -473,7 +485,7 @@ pvesm alloc $STORAGE $VMID $DISK0 4M 1>&/dev/null
 qm importdisk $VMID ${FILE%.*} $STORAGE ${DISK_IMPORT:-} 1>&/dev/null
 qm set $VMID \
   -efidisk0 ${DISK0_REF},efitype=4m,size=4M \
-  -scsi0 ${DISK1_REF},size=512M \
+  -scsi0 ${DISK1_REF},size=$RAM_SIZE \
   -boot order=scsi0 \
   -tags proxmox-helper-scripts \
   -description "<div align='center'><a href='https://Helper-Scripts.com'><img src='https://raw.githubusercontent.com/tteck/Proxmox/main/misc/images/logo-81x112.png'/></a>
